@@ -19,18 +19,24 @@ const configuration = new Configuration({
 });
 const openAI = new OpenAIApi(configuration);
 
-async function generateOneSentence(summary) {
+async function generateOneSentence(title, summary) {
   const blurb = summary.split('\n')[0];
   const promptText = `Here's the summary paragraph from the wikipedia article on "${title}":
 
 "${blurb}"
 
-The following is a short, unquoted, one-sentence description of "${title}", based on the summary above:`;
+Please write a short, unquoted, one-sentence description of "${title}", based on the summary above:`;
   const text = await getCompletion(promptText);
   return text.trim();
 }
 
-const SPECIAL_SECTIONS = ['Notes', 'References', 'External links', 'See also'];
+const SPECIAL_SECTIONS = [
+  'Notes',
+  'References',
+  'External links',
+  'See also',
+  'Further reading',
+];
 
 function includesSpecialSection(line) {
   return SPECIAL_SECTIONS.some((x) =>
@@ -39,92 +45,113 @@ function includesSpecialSection(line) {
 }
 
 async function getCompletion(promptText) {
-  const response = await openAI.createCompletion({
-    model: 'text-davinci-003',
-    prompt: promptText,
+  const response = await openAI.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You are a helpful bot in charge of constructing a new version of wikipedia from scratch.',
+      },
+      { role: 'user', content: promptText },
+    ],
     max_tokens: 1000,
     temperature: 1,
     user: 'kiwipedia-dev',
     n: 1,
   });
-  return response.data.choices[0].text;
+  return response.data.choices[0].message.content;
 }
 
 function getPrefix(title, oneSentence) {
   return `Here's the one-sentence description of the article for "${title}" in the english version of Wikipedia:
 
-  ${oneSentence}
+  "${oneSentence}"
 `;
 }
 
-export async function generateSections(title, oneSentence) {
+async function generateSections(title, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
-The following is the list of sections, in a numbered bullet point list, of the article for "${title}" in the english version of Wikipedia:`;
+Please write the list of sections, in a numbered bullet point list, of the article for "${title}" in the english version of Wikipedia:`;
   const text = await getCompletion(promptText);
   const sections = text
     .split('\n')
     .filter((line) => {
-      if (line.length === 0) return false;
+      if (line.trim().length === 0) return false;
       if (includesSpecialSection(line)) return false;
       return true;
     })
     .map((x) => {
       // Remove the numbered bullet points
-      return x.replace(/^\d+\.\s+/, '');
+      x = x.replace(/^\d+\.\s+/, '');
+      // Remove the trailing period
+      if (x.endsWith('.')) x = x.slice(0, x.length - 1);
+      return x;
     });
 
   return sections;
 }
 
-export async function generateSummary(title, oneSentence) {
+async function generateSummary(title, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
-The following is the summary of the article for "${title}" in the english version of Wikipedia:`;
+Please write the summary of the article for "${title}" in the english version of Wikipedia, in a paragraph or two:`;
   const text = await getCompletion(promptText);
   return text.trim();
 }
 
-export async function generateSectionText(title, section, oneSentence) {
+async function generateSectionText(title, section, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
-The following is the text for the section "${section}" of the article for "${title}" in the english version of Wikipedia:`;
+Please write the text for the section "${section}" of the article for "${title}" in the english version of Wikipedia. Writing should be in great detail and cover multiple paragraphs.`;
   const text = await getCompletion(promptText);
-  return text.trim();
+
+  // Oftentimes, the title of the section is repeated in the first sentence.
+  const lines = text.split('\n');
+  if (
+    lines.length &&
+    lines[0].toUpperCase().includes(section.toUpperCase()) &&
+    lines[0].length - section.length < 3
+  ) {
+    lines.shift();
+  }
+  return lines.join('\n').trim();
 }
 
-const title = "Alice's Adventures in Wonderland";
-const page = await wiki().page(title);
-const url = page.canonicalurl;
-const pageId = getFinalUrlPiece(url);
-const wikiSummary = await page.summary();
+export async function generateContent(title) {
+  const page = await wiki().page(title);
+  const url = page.canonicalurl;
+  const pageId = getFinalUrlPiece(url);
+  const wikiSummary = await page.summary();
 
-const oneSentence = await generateOneSentence(wikiSummary);
-console.log('🔥 generated one sentence', oneSentence);
-const summary = await generateSummary(title, oneSentence);
-console.log('🔥 generated summary', summary);
-const sections = await generateSections(title, oneSentence);
-console.log('🔥 generated sections', sections);
+  const oneSentence = await generateOneSentence(title, wikiSummary);
+  console.log('🔥 generated one sentence');
+  const summary = await generateSummary(title, oneSentence);
+  console.log('🔥 generated summary');
+  const sections = await generateSections(title, oneSentence);
+  console.log('🔥 generated sections');
 
-const jsonObj = {
-  title,
-  oneSentence,
-  summary,
-  sections: [],
-};
-for (const section of sections) {
-  const text = await generateSectionText(title, section, oneSentence);
-  console.log('🔥 generated', section);
-  jsonObj.sections.push({ section, text });
+  const jsonObj = {
+    title,
+    oneSentence,
+    summary,
+    sections: [],
+  };
+  for (const section of sections) {
+    const text = await generateSectionText(title, section, oneSentence);
+    console.log('🔥 generated', section);
+    jsonObj.sections.push({ section, text });
+  }
+
+  const insertData = {
+    ':title': title,
+    ':page_id': pageId,
+    ':url': url,
+    ':json': JSON.stringify(jsonObj),
+  };
+
+  const insertResult = await db.run(
+    'REPLACE INTO synth_articles(title, page_id, url, json) VALUES (:title, :page_id, :url, :json)',
+    insertData,
+  );
+
+  console.log('🌵 synthesized', title);
 }
-
-const insertData = {
-  ':title': title,
-  ':page_id': pageId,
-  ':url': url,
-  ':json': JSON.stringify(jsonObj),
-};
-
-const insertResult = await db.run(
-  'INSERT INTO synth_articles(title, page_id, url, json) VALUES (:title, :page_id, :url, :json)',
-  insertData,
-);
-
-console.log('🌵 synthesized', title);

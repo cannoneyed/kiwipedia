@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { Inter } from 'next/font/google';
-import styles from '@/styles/Home.module.css';
+import styles from './Wiki.module.css';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
@@ -38,10 +38,24 @@ export default function Article(props: Props) {
           </div>
           <div className={styles.summary}>{props.summary}</div>
           {props.sections.map((section) => {
+            // Oftentimes, the section text contains the name of the section.
+            // The generation API should filter this but we'll do it again here
+            // to be safe.
+            const text = section.text;
+            const lines = text.split('\n');
+            if (
+              lines.length &&
+              lines[0].toUpperCase().includes(section.section.toUpperCase()) &&
+              lines[0].length - section.section.length < 3
+            ) {
+              lines.shift();
+            }
+            const sectionText = lines.join('\n').trim();
+
             return (
               <>
                 <div className={styles.sectionTitle}>{section.section}</div>
-                <div className={styles.sectionText}>{section.text}</div>
+                <div className={styles.sectionText}>{sectionText}</div>
               </>
             );
           })}
