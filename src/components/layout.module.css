@@ -1,0 +1,48 @@
+.navbar {
+  display: flex;
+  flex-direction: row;
+  padding: 2rem 2rem 0rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logoContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 3rem;
+}
+
+.title {
+  font-size: 2.4rem;
+  font-weight: 500;
+}
+
+.searchInput:enabled {
+  background-color: #fff;
+  color: #202122;
+  border-color: #a2a9b1;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 0.25s;
+}
+
+.searchInput {
+  display: block;
+  box-sizing: border-box;
+  min-width: 400px;
+  min-height: 32px;
+  width: 100%;
+  margin: 0;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 2px;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 1.2rem;
+  line-height: 1.5;
+}

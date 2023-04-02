@@ -71,6 +71,8 @@ for (const page of pages) {
     }
   }
 
+  // Handle the case where the final section ends on a subsection
+
   // If the mainSections is different (indicating we've moved subsections into
   // the section object), then we need to update the page.
   if (mainSections.length !== page.sections.length) {
