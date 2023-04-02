@@ -1,8 +1,9 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import { Inter } from 'next/font/google';
-import { DATA } from '../../data/alice';
 import styles from '@/styles/Home.module.css';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import path from 'path';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -50,6 +51,43 @@ export default function Article(props: Props) {
   );
 }
 
-export function getStaticProps() {
-  return { props: DATA };
+export async function getStaticProps({ params }: any) {
+  // open the database
+  const filename = path.resolve(process.cwd(), '.db/database.db');
+  const db = await open({
+    filename,
+    driver: sqlite3.Database,
+  });
+
+  const parsed = encodeURI(params.id).replace(/'/g, '%27');
+  console.log(params.id, parsed);
+
+  const result = await db.get('SELECT * FROM synth_articles WHERE page_id=?', [
+    parsed,
+  ]);
+
+  const json = JSON.parse(result.json);
+
+  return {
+    props: json,
+  };
+}
+
+export async function getStaticPaths() {
+  // open the database
+  const filename = path.resolve(process.cwd(), '.db/database.db');
+  const db = await open({
+    filename,
+    driver: sqlite3.Database,
+  });
+
+  const results = await db.all('SELECT page_id FROM synth_articles');
+  const paths = results.map((result) => {
+    return { params: { id: decodeURI(result.page_id) } };
+  });
+
+  return {
+    paths,
+    fallback: false,
+  };
 }

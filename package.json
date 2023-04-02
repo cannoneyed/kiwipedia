@@ -17,7 +17,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "wikipedia": "ts-node scripts/wikipedia.ts"
   },
   "lint-staged": {
     "./src/**/*.{ts,js,jsx,tsx}": [
@@ -26,9 +27,15 @@
     ]
   },
   "dependencies": {
+    "dotenv": "16.0.3",
     "next": "13.2.4",
+    "openai": "3.2.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "sqlite": "4.1.2",
+    "sqlite3": "5.1.6",
+    "ts-node": "10.9.1",
+    "wikijs": "6.4.1"
   },
   "devDependencies": {
     "@commitlint/cli": "17.5.1",
