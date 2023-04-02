@@ -5,12 +5,13 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
 import Link from 'next/link';
+import clientPromise, { serializeObjectId } from '@/lib/mongodb';
 
 const inter = Inter({ subsets: ['latin'] });
 
 interface Page {
   title: string;
-  url: string;
+  pageId: string;
 }
 
 export interface Props {
@@ -44,9 +45,10 @@ export default function Article(props: Props) {
           <div className={styles.articles}>
             <div className={styles.articlesTitle}>Featured articles</div>
             {props.pages.map((page) => {
+              const url = `/wiki/${page.pageId}`;
               return (
-                <div>
-                  <Link href={page.url}>
+                <div key={page.pageId}>
+                  <Link href={url}>
                     <span className={styles.link}>{page.title}</span>
                   </Link>
                 </div>
@@ -60,21 +62,20 @@ export default function Article(props: Props) {
 }
 
 export async function getStaticProps() {
-  const filename = path.resolve(process.cwd(), '.db/database.db');
-  const db = await open({
-    filename,
-    driver: sqlite3.Database,
-  });
+  try {
+    const client = await clientPromise;
+    const db = client.db('kiwipedia');
 
-  const results = await db.all('SELECT title, page_id FROM synth_articles');
-  const slice = results.slice(0, 100);
+    const pages = await db
+      .collection('wikis')
+      .find({})
+      .project({ title: 1, pageId: 1, _id: 0 })
+      .toArray();
 
-  return {
-    props: {
-      pages: slice.map((entry) => {
-        return { title: entry.title, url: `/wiki/${entry.page_id}` };
-      }),
-      nArticles: results.length,
-    },
-  };
+    return {
+      props: { pages, nArticles: pages.length },
+    };
+  } catch (e) {
+    console.error(e);
+  }
 }

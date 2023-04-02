@@ -4,11 +4,12 @@ import styles from './Wiki.module.css';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import path from 'path';
+import clientPromise from '@/lib/mongodb';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export interface Section {
-  section: string;
+  title: string;
   text: string;
 }
 
@@ -45,8 +46,8 @@ export default function Article(props: Props) {
             const lines = text.split('\n');
             if (
               lines.length &&
-              lines[0].toUpperCase().includes(section.section.toUpperCase()) &&
-              lines[0].length - section.section.length < 3
+              lines[0].toUpperCase().includes(section.title.toUpperCase()) &&
+              lines[0].length - section.title.length < 3
             ) {
               lines.shift();
             }
@@ -54,7 +55,7 @@ export default function Article(props: Props) {
 
             return (
               <>
-                <div className={styles.sectionTitle}>{section.section}</div>
+                <div className={styles.sectionTitle}>{section.title}</div>
                 <div className={styles.sectionText}>{sectionText}</div>
               </>
             );
@@ -66,42 +67,48 @@ export default function Article(props: Props) {
 }
 
 export async function getStaticProps({ params }: any) {
-  // open the database
-  const filename = path.resolve(process.cwd(), '.db/database.db');
-  const db = await open({
-    filename,
-    driver: sqlite3.Database,
-  });
+  try {
+    const client = await clientPromise;
+    const db = client.db('kiwipedia');
 
-  const parsed = encodeURI(params.id).replace(/'/g, '%27');
-  console.log(params.id, parsed);
+    let pageId = encodeURI(params.id);
+    pageId = pageId.replace(/'/g, '%27');
 
-  const result = await db.get('SELECT * FROM synth_articles WHERE page_id=?', [
-    parsed,
-  ]);
+    const pages = await db
+      .collection('wikis')
+      .find({ pageId })
+      .project({ _id: 0 })
+      .toArray();
 
-  const json = JSON.parse(result.json);
+    const page = pages[0];
 
-  return {
-    props: json,
-  };
+    return {
+      props: page,
+    };
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function getStaticPaths() {
-  // open the database
-  const filename = path.resolve(process.cwd(), '.db/database.db');
-  const db = await open({
-    filename,
-    driver: sqlite3.Database,
-  });
+  try {
+    const client = await clientPromise;
+    const db = client.db('kiwipedia');
 
-  const results = await db.all('SELECT page_id FROM synth_articles');
-  const paths = results.map((result) => {
-    return { params: { id: decodeURI(result.page_id) } };
-  });
+    const wikis = await db
+      .collection('wikis')
+      .find({})
+      .project({ pageId: 1, _id: 0 })
+      .toArray();
+    const paths = wikis.map((wiki) => {
+      return { params: { id: decodeURI(wiki.pageId) } };
+    });
 
-  return {
-    paths,
-    fallback: false,
-  };
+    return {
+      paths,
+      fallback: false,
+    };
+  } catch (e) {
+    console.error(e);
+  }
 }
