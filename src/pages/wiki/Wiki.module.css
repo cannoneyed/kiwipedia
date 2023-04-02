@@ -35,3 +35,11 @@
   box-shadow: 0 1px #a2a9b1;
   align-items: center;
 }
+
+.subsectionTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.4rem;
+  align-items: center;
+}

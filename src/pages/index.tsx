@@ -1,11 +1,8 @@
 import Head from 'next/head';
 import { Inter } from 'next/font/google';
 import styles from '@/styles/Home.module.css';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
 import Link from 'next/link';
-import clientPromise, { serializeObjectId } from '@/lib/mongodb';
+import clientPromise from '@/lib/mongodb';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,7 +16,7 @@ export interface Props {
   pages: Page[];
 }
 
-export default function Article(props: Props) {
+export default function Home(props: Props) {
   return (
     <>
       <Head>

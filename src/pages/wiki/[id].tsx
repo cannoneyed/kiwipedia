@@ -1,10 +1,9 @@
 import Head from 'next/head';
 import { Inter } from 'next/font/google';
 import styles from './Wiki.module.css';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
 import clientPromise from '@/lib/mongodb';
+
+import Section from './section';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,7 +18,8 @@ export interface Props {
   sections: Section[];
 }
 
-export default function Article(props: Props) {
+export default function Wiki(props: Props) {
+  console.log(props.sections.map((s) => s.title));
   return (
     <>
       <Head>
@@ -39,26 +39,7 @@ export default function Article(props: Props) {
           </div>
           <div className={styles.summary}>{props.summary}</div>
           {props.sections.map((section) => {
-            // Oftentimes, the section text contains the name of the section.
-            // The generation API should filter this but we'll do it again here
-            // to be safe.
-            const text = section.text;
-            const lines = text.split('\n');
-            if (
-              lines.length &&
-              lines[0].toUpperCase().includes(section.title.toUpperCase()) &&
-              lines[0].length - section.title.length < 3
-            ) {
-              lines.shift();
-            }
-            const sectionText = lines.join('\n').trim();
-
-            return (
-              <>
-                <div className={styles.sectionTitle}>{section.title}</div>
-                <div className={styles.sectionText}>{sectionText}</div>
-              </>
-            );
+            return <Section {...section} />;
           })}
         </div>
       </main>
