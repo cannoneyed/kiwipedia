@@ -1,29 +1,8 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
 import wiki from 'wikijs';
-import path from 'path';
-import { Configuration, OpenAIApi } from 'openai';
 import { getFinalUrlPiece } from '../wikipedia/utils.mjs';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { system } from './system.mjs';
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
-});
-
-await client.connect();
-console.log('Connected successfully to db');
-
-const db = client.db('kiwipedia');
-const collection = db.collection('wikis');
-
-const configuration = new Configuration({
-  organization: process.env.OPENAI_ORG,
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openAI = new OpenAIApi(configuration);
+await system.initialize();
 
 async function generateOneSentence(title, summary) {
   const blurb = summary.split('\n')[0];
@@ -32,7 +11,7 @@ async function generateOneSentence(title, summary) {
 "${blurb}"
 
 Please write a short, unquoted, one-sentence description of "${title}", based on the summary above:`;
-  const text = await getCompletion(promptText);
+  const text = await system.getCompletion(promptText);
   return text.trim();
 }
 
@@ -48,25 +27,6 @@ function includesSpecialSection(line) {
   return SPECIAL_SECTIONS.some((x) =>
     line.toUpperCase().includes(x.toUpperCase()),
   );
-}
-
-async function getCompletion(promptText) {
-  const response = await openAI.createChatCompletion({
-    model: 'gpt-3.5-turbo',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are a helpful bot in charge of constructing a new version of wikipedia from scratch.',
-      },
-      { role: 'user', content: promptText },
-    ],
-    max_tokens: 1000,
-    temperature: 1,
-    user: 'kiwipedia-dev',
-    n: 1,
-  });
-  return response.data.choices[0].message.content;
 }
 
 function getPrefix(title, oneSentence) {
@@ -139,7 +99,7 @@ function postprocessSections(sectionTitles) {
 async function generateSections(title, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
 Please write the list of sections, in a numbered bullet point list, of the article for "${title}" in the english version of Wikipedia:`;
-  const text = await getCompletion(promptText);
+  const text = await system.getCompletion(promptText);
   const sectionTitles = text
     .split('\n')
     .filter((line) => {
@@ -161,7 +121,7 @@ Please write the list of sections, in a numbered bullet point list, of the artic
 async function generateSummary(title, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
 Please write the summary of the article for "${title}" in the english version of Wikipedia, in a paragraph or two:`;
-  const text = await getCompletion(promptText);
+  const text = await system.getCompletion(promptText);
   return text.trim();
 }
 
@@ -181,7 +141,7 @@ function removeTitle(title, text) {
 async function generateSectionText(title, sectionTitle, oneSentence) {
   const promptText = `${getPrefix(title, oneSentence)}
 Please write the text for the section "${sectionTitle}" of the article for "${title}" in the english version of Wikipedia. Writing should be in great detail and cover multiple paragraphs.`;
-  const text = await getCompletion(promptText);
+  const text = await system.getCompletion(promptText);
 
   return removeTitle(sectionTitle, text);
 }
@@ -220,10 +180,11 @@ export async function generateContent(title) {
     data.sections.push(section);
   }
 
-  page.sections = mainSections;
-  await collection.replaceOne({ pageId: data.pageId }, data);
+  await system.db.collection.replaceOne({ title }, data, { upsert: true });
 
   console.log('🌵 synthesized', title);
 }
 
-generateContent('Cactus');
+await generateContent('Taco');
+
+system.close();
