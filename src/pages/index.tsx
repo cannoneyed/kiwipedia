@@ -59,10 +59,15 @@ export default function Home(props: Props) {
   );
 }
 
-export async function getServerSideProps({ params }: any) {
+export async function getServerSideProps({ req, res }: any) {
   try {
     const client = await clientPromise;
     const db = client.db('kiwipedia');
+
+    res.setHeader(
+      'Cache-Control',
+      'public, s-maxage=120, stale-while-revalidate=240',
+    );
 
     const pages = await db
       .collection('wikis')
@@ -73,7 +78,7 @@ export async function getServerSideProps({ params }: any) {
     shuffle(pages);
 
     return {
-      props: { pages, nArticles: pages.length },
+      props: { pages: pages.slice(0, 20), nArticles: pages.length },
     };
   } catch (e) {
     console.error(e);
