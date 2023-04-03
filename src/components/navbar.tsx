@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
+import { useMediaQuery } from 'react-responsive';
 
 import styles from './layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export default function Navbar() {
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
+
   return (
     <div className={styles.navbar + ' ' + inter.className}>
       <Link href="/">
@@ -17,13 +20,19 @@ export default function Navbar() {
           </div>
         </div>
       </Link>
-      <div className={styles.search}>
-        <input
-          className={styles.searchInput}
-          type="text"
-          placeholder="Search Kiwipedia"
-        ></input>
-      </div>
+      {isTabletOrMobile ? <></> : <Search />}
+    </div>
+  );
+}
+
+function Search() {
+  return (
+    <div className={styles.search}>
+      <input
+        className={styles.searchInput}
+        type="text"
+        placeholder="Search Kiwipedia"
+      ></input>
     </div>
   );
 }

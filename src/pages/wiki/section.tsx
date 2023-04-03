@@ -35,7 +35,7 @@ export default function Section(props: Props) {
       <div className={styles.sectionTitle}>{props.title}</div>
       <div className={styles.sectionText}>{sectionText}</div>
       {subsections.map((subsection) => {
-        return <Subsection {...subsection} />;
+        return <Subsection key={subsection.title} {...subsection} />;
       })}
     </>
   );

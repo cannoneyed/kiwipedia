@@ -3,9 +3,16 @@ import { Inter } from 'next/font/google';
 import styles from './Wiki.module.css';
 import clientPromise from '@/lib/mongodb';
 
+import Infobox from './infobox';
 import Section from './section';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export interface Image {
+  url: string;
+  prompt: string;
+  caption: string;
+}
 
 export interface Section {
   title: string;
@@ -15,11 +22,11 @@ export interface Section {
 export interface Props {
   title: string;
   summary: string;
+  mainImage: Image;
   sections: Section[];
 }
 
 export default function Wiki(props: Props) {
-  console.log(props.sections.map((s) => s.title));
   return (
     <>
       <Head>
@@ -37,9 +44,12 @@ export default function Wiki(props: Props) {
           <div className={styles.subtitle}>
             From Kiwipedia, the synthetic encyclopedia
           </div>
-          <div className={styles.summary}>{props.summary}</div>
+          <div className={styles.summary}>
+            <Infobox {...props} />
+            {props.summary}
+          </div>
           {props.sections.map((section) => {
-            return <Section {...section} />;
+            return <Section key={section.title} {...section} />;
           })}
         </div>
       </main>

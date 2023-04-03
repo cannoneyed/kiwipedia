@@ -9,9 +9,21 @@ dotenv.config();
 
 class System {
   isInitialized = false;
+  isInitializing = false;
+
+  initializationPromise = null;
 
   async initialize() {
     if (this.isInitialized) return;
+    if (this.isInitializing) return this.initializationPromise;
+
+    let resolve;
+    const promise = new Promise((_resolve) => {
+      resolve = _resolve;
+    });
+
+    this.initializationPromise = promise;
+    this.isInitializing = true;
 
     // Initialize MongoDB
     // =========================================================================
@@ -39,6 +51,9 @@ class System {
       auth: process.env.REPLICATE_API_TOKEN,
     });
 
+    this.isInitialized = true;
+    this.isInitializing = false;
+    resolve();
     console.log('🌵 System initialized');
   }
 

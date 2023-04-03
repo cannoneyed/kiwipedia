@@ -43,3 +43,36 @@
   margin-bottom: 0.4rem;
   align-items: center;
 }
+
+/* For mobile phones: */
+.infobox {
+  border: 1px solid #a2a9b1;
+  border-spacing: 3px;
+  background-color: #f8f9fa;
+  color: black;
+  padding: 1em;
+  font-size: 88%;
+  line-height: 1.5em;
+}
+
+@media only screen and (min-width: 768px) {
+  .infobox {
+    margin: 0.5em 0 0.5em 1em;
+    float: right;
+    clear: right;
+    width: 22em;
+  }
+}
+
+.imageContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mainImage {
+  max-width: 100%;
+  margin-bottom: 0.7em;
+}

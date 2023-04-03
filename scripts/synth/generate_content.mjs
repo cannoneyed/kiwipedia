@@ -36,10 +36,9 @@ function getPrefix(title, oneSentence) {
 `;
 }
 
-const BULLETS = ['-', '*'];
 function startsWithBulletPoint(title) {
-  // Check to see if the title starts with " - " or " * ", which we do by
-  // splitting at the character and ensuring that the first split element is
+  // Check to see if the title starts with " - " or " * " or 'a.', which we do
+  // by splitting at the character and ensuring that the first split element is
   // empty.
   const removed = removeBulletPoint(title);
   return removed !== title;
@@ -49,12 +48,10 @@ function removeBulletPoint(title) {
   // Check to see if the title starts with " - " or " * ", which we do by
   // splitting at the character and ensuring that the first split element is
   // empty.
-  for (const bullet of BULLETS) {
-    const prefix = ` ${bullet} `;
-    const pieces = title.split(prefix).map((x) => x.trim());
-    if (pieces[0] === '') {
-      return pieces.slice(1).join();
-    }
+  const regex = /\w\. | - | \* |/;
+  const pieces = title.split(regex);
+  if (pieces[0].trim() === '') {
+    return pieces.slice(1).join();
   }
   return title;
 }
@@ -147,6 +144,8 @@ Please write the text for the section "${sectionTitle}" of the article for "${ti
 }
 
 export async function generateContent(title) {
+  const collection = system.db.collection('wikis');
+
   const page = await wiki().page(title);
   const url = page.canonicalurl;
   const pageId = getFinalUrlPiece(url);
@@ -180,7 +179,7 @@ export async function generateContent(title) {
     data.sections.push(section);
   }
 
-  await system.db.collection.replaceOne({ title }, data, { upsert: true });
+  await collection.replaceOne({ title }, data, { upsert: true });
 
   console.log('🌵 synthesized', title);
 }
