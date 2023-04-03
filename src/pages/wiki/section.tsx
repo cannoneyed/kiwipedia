@@ -28,6 +28,7 @@ function filterOutSectionTitle(text: string, title: string) {
 
 export default function Section(props: Props) {
   const { text, title } = props;
+  if (!text) return <></>;
   const sectionText = filterOutSectionTitle(text, title);
   const paragraphs = sectionText.split('\n');
   const subsections = props.subsections || [];
@@ -53,6 +54,7 @@ export default function Section(props: Props) {
 
 function Subsection(props: Section) {
   const { text, title } = props;
+  if (!text) return <></>;
   const sectionText = filterOutSectionTitle(text, title);
   const paragraphs = sectionText.split('\n');
 
