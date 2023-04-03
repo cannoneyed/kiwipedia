@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import { Configuration, OpenAIApi } from 'openai';
 import { getFinalUrlPiece } from '../wikipedia/utils.mjs';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 class System {
   isInitialized = false;

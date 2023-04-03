@@ -3,7 +3,10 @@ import wiki from 'wikijs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import { system } from './system.mjs';
 import { generateContent } from './generate_content.mjs';
+
+await system.initialize();
 
 const filename = path.resolve(process.cwd(), '.db/database.db');
 const db = await open({
@@ -20,14 +23,13 @@ async function getArticlesSortedByPageViews(nItems = 100) {
 }
 
 async function getSynthedArticle(title) {
-  const result = await db.get('SELECT * FROM synth_articles WHERE title=?', [
-    title,
-  ]);
+  const collection = system.db.collection('wikis');
+  const result = await collection.findOne({ title });
   return result;
 }
 
 async function generatePopular() {
-  const results = await getArticlesSortedByPageViews(20);
+  const results = await getArticlesSortedByPageViews(100);
 
   for (const result of results) {
     const existing = await getSynthedArticle(result.title);

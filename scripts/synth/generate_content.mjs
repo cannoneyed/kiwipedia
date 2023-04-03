@@ -1,8 +1,10 @@
 import wiki from 'wikijs';
 import { getFinalUrlPiece } from '../wikipedia/utils.mjs';
 import { system } from './system.mjs';
-
-await system.initialize();
+import {
+  generateStableDiffusionPrompt,
+  generateCaption,
+} from './generate_image.mjs';
 
 async function generateOneSentence(title, summary) {
   const blurb = summary.split('\n')[0];
@@ -143,7 +145,28 @@ Please write the text for the section "${sectionTitle}" of the article for "${ti
   return removeTitle(sectionTitle, text);
 }
 
+async function generateImage(title) {
+  console.log('🔥 generating image for', title);
+  const stableDiffusionPrompt = await generateStableDiffusionPrompt(title);
+  const caption = await generateCaption(title, stableDiffusionPrompt);
+  try {
+    const genUrl = await system.generateImage(stableDiffusionPrompt);
+    const pieces = genUrl.split('/');
+    const hash = pieces[pieces.length - 2];
+    await system.downloadImage(genUrl, `/tmp/${hash}.png`);
+    await system.postProcessImage(`/tmp/${hash}.png`);
+    const imageUrl = await system.uploadImage(
+      `/tmp/${hash}.jpeg`,
+      `${hash}.jpeg`,
+    );
+    return { url: imageUrl, prompt: stableDiffusionPrompt, caption };
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 export async function generateContent(title) {
+  console.log('🌵 generating', title);
   const collection = system.db.collection('wikis');
 
   const page = await wiki().page(title);
@@ -163,27 +186,44 @@ export async function generateContent(title) {
     pageId,
     oneSentence,
     summary,
-    sections: [],
+    sections,
   };
-  for (const section of sections) {
-    section.text = await generateSectionText(title, section.title, oneSentence);
+
+  const sectionGenerators = [];
+
+  for (const section of data.sections) {
+    const sectionGenerator = () =>
+      generateSectionText(title, section.title, oneSentence).then((text) => {
+        console.log('🔥 generated section', section.title);
+        section.text = text;
+      });
+    sectionGenerators.push(sectionGenerator);
     const subsections = section.subsections || [];
     for (const subsection of subsections) {
-      subsection.text = await generateSectionText(
-        title,
-        subsection.title,
-        oneSentence,
-      );
+      const subsectionGenerator = () =>
+        generateSectionText(titlem, subsection.title, oneSentence).then(
+          (text) => {
+            console.log(
+              '🔥 generated subsection',
+              section.title,
+              subsection.title,
+            );
+            subsection.text = text;
+          },
+        );
+      sectionGenerators.push(subsectionGenerator);
     }
-    console.log('🔥 generated', section.title);
-    data.sections.push(section);
   }
+
+  // Simple parallel limiting, 3 at a time
+  while (sectionGenerators.length) {
+    await Promise.all(sectionGenerators.splice(0, 3).map((fn) => fn()));
+  }
+
+  // Add image
+  data.mainImage = await generateImage(title);
 
   await collection.replaceOne({ title }, data, { upsert: true });
 
   console.log('🌵 synthesized', title);
 }
-
-await generateContent('Taco');
-
-system.close();
