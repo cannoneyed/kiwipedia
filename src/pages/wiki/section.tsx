@@ -10,6 +10,7 @@ export interface Props extends Section {
 }
 
 function filterOutSectionTitle(text: string, title: string) {
+  if (!text) return text;
   // Oftentimes, the section text contains the name of the section.
   // The generation API should filter this but we'll do it again here
   // to be safe.

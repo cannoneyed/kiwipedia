@@ -57,7 +57,6 @@ export default function Wiki(props: Props) {
   );
 }
 
-// This gets called on every request
 export async function getServerSideProps({ params }: any) {
   try {
     const client = await clientPromise;

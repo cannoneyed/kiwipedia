@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import { Inter } from 'next/font/google';
+import shuffle from 'shuffle-array';
 import styles from '@/styles/Home.module.css';
 import Link from 'next/link';
 import clientPromise from '@/lib/mongodb';
@@ -58,7 +59,7 @@ export default function Home(props: Props) {
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps({ params }: any) {
   try {
     const client = await clientPromise;
     const db = client.db('kiwipedia');
@@ -68,6 +69,8 @@ export async function getStaticProps() {
       .find({})
       .project({ title: 1, pageId: 1, _id: 0 })
       .toArray();
+
+    shuffle(pages);
 
     return {
       props: { pages, nArticles: pages.length },
