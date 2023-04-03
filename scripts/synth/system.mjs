@@ -1,7 +1,10 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
+import { Storage } from '@google-cloud/storage';
 import Replicate from 'replicate';
 import wiki from 'wikijs';
 import path from 'path';
+import download from 'image-downloader';
+import sharp from 'sharp';
 import { Configuration, OpenAIApi } from 'openai';
 import { getFinalUrlPiece } from '../wikipedia/utils.mjs';
 import * as dotenv from 'dotenv';
@@ -51,10 +54,40 @@ class System {
       auth: process.env.REPLICATE_API_TOKEN,
     });
 
+    // Initialize GCloud
+    // =========================================================================
+    this.storage = new Storage({
+      projectId: 'kiwipedia',
+    });
+
     this.isInitialized = true;
     this.isInitializing = false;
     resolve();
     console.log('🌵 System initialized');
+  }
+
+  async downloadImage(url, destFileName) {
+    return download.image({
+      url,
+      dest: destFileName,
+    });
+  }
+
+  async postProcessImage(filePath) {
+    const jpegFilePath = filePath.replace('.png', '.jpeg');
+
+    return sharp(filePath)
+      .toFormat('jpeg', { mozjpeg: true })
+      .toFile(jpegFilePath);
+  }
+
+  async uploadImage(filePath, destFileName) {
+    const options = {
+      destination: destFileName,
+    };
+
+    await this.storage.bucket('kiwipedia-images').upload(filePath, options);
+    return `https://storage.googleapis.com/kiwipedia-images/${destFileName}`;
   }
 
   async getCompletion(promptText) {
