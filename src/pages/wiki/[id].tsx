@@ -57,7 +57,8 @@ export default function Wiki(props: Props) {
   );
 }
 
-export async function getStaticProps({ params }: any) {
+// This gets called on every request
+export async function getServerSideProps({ params }: any) {
   try {
     const client = await clientPromise;
     const db = client.db('kiwipedia');
@@ -73,31 +74,14 @@ export async function getStaticProps({ params }: any) {
 
     const page = pages[0];
 
+    if (!page) {
+      return {
+        notFound: true,
+      };
+    }
+
     return {
       props: page,
-    };
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-export async function getStaticPaths() {
-  try {
-    const client = await clientPromise;
-    const db = client.db('kiwipedia');
-
-    const wikis = await db
-      .collection('wikis')
-      .find({})
-      .project({ pageId: 1, _id: 0 })
-      .toArray();
-    const paths = wikis.map((wiki) => {
-      return { params: { id: decodeURI(wiki.pageId) } };
-    });
-
-    return {
-      paths,
-      fallback: false,
     };
   } catch (e) {
     console.error(e);
