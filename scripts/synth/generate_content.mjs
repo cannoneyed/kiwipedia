@@ -201,7 +201,7 @@ export async function generateContent(title) {
     const subsections = section.subsections || [];
     for (const subsection of subsections) {
       const subsectionGenerator = () =>
-        generateSectionText(titlem, subsection.title, oneSentence).then(
+        generateSectionText(title, subsection.title, oneSentence).then(
           (text) => {
             console.log(
               '🔥 generated subsection',

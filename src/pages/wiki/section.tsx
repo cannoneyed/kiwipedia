@@ -29,12 +29,21 @@ function filterOutSectionTitle(text: string, title: string) {
 export default function Section(props: Props) {
   const { text, title } = props;
   const sectionText = filterOutSectionTitle(text, title);
+  const paragraphs = sectionText.split('\n');
   const subsections = props.subsections || [];
 
   return (
     <>
       <div className={styles.sectionTitle}>{props.title}</div>
-      <div className={styles.sectionText}>{sectionText}</div>
+      <div className={styles.sectionText}>
+        {paragraphs.map((paragraph, index) => {
+          return (
+            <p className={styles.paragraph} key={index}>
+              {paragraph}
+            </p>
+          );
+        })}
+      </div>
       {subsections.map((subsection) => {
         return <Subsection key={subsection.title} {...subsection} />;
       })}
@@ -45,11 +54,20 @@ export default function Section(props: Props) {
 function Subsection(props: Section) {
   const { text, title } = props;
   const sectionText = filterOutSectionTitle(text, title);
+  const paragraphs = sectionText.split('\n');
 
   return (
     <>
       <div className={styles.subsectionTitle}>{props.title}</div>
-      <div className={styles.sectionText}>{sectionText}</div>
+      <div className={styles.sectionText}>
+        {paragraphs.map((paragraph, index) => {
+          return (
+            <p className={styles.paragraph} key={index}>
+              {paragraph}
+            </p>
+          );
+        })}
+      </div>
     </>
   );
 }
