@@ -22,6 +22,12 @@
   font-weight: 500;
 }
 
+@media only screen and (max-width: 768px) {
+  .search {
+    display: none;
+  }
+}
+
 .searchInput:enabled {
   background-color: #fff;
   color: #202122;

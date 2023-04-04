@@ -1,14 +1,15 @@
 .main {
   display: flex;
   flex-direction: column;
-  padding: 2rem;
+  padding: 1rem;
   min-height: 100vh;
-  font-size: 1.2rem;
-  line-height: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6rem;
 }
 
 .title {
   font-size: 2rem;
+  line-height: 3rem;
   font-style: italic;
   font-weight: 500;
   padding-bottom: 0.4rem;
@@ -55,7 +56,8 @@
   color: black;
   padding: 1em;
   font-size: 88%;
-  line-height: 1.5em;
+  line-height: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 @media only screen and (min-width: 768px) {

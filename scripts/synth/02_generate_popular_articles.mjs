@@ -1,6 +1,7 @@
 // Script to load the most popular 1000 articles per month from 2016 on
 import wiki from 'wikijs';
 import path from 'path';
+import { ConcurrentPromiseQueue } from 'concurrent-promise-queue';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { system } from './system.mjs';
@@ -29,14 +30,30 @@ async function getSynthedArticle(title) {
 }
 
 async function generatePopular() {
-  const results = await getArticlesSortedByPageViews(100);
+  const results = await getArticlesSortedByPageViews(10000);
+
+  const queue = new ConcurrentPromiseQueue({
+    maxNumberOfConcurrentPromises: 8,
+  });
+  const allPromises = [];
 
   for (const result of results) {
-    const existing = await getSynthedArticle(result.title);
-    if (existing) continue;
-    console.log('🌵 generating', result.title);
-    await generateContent(result.title);
+    const promise = queue.addPromise(async () => {
+      try {
+        console.log('🌵 checking', result.title);
+        const existing = await getSynthedArticle(result.title);
+        if (existing) return;
+        console.log('🌵 generating', result.title);
+        await generateContent(result.title);
+      } catch (e) {
+        console.error('ERROR', e);
+      }
+    });
+    allPromises.push(promise);
   }
+
+  await Promise.all(allPromises);
+
   console.log('✨ done!');
 }
 

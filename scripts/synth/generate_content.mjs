@@ -50,7 +50,7 @@ function removeBulletPoint(title) {
   // Check to see if the title starts with " - " or " * ", which we do by
   // splitting at the character and ensuring that the first split element is
   // empty.
-  const regex = /\w\. | - | \* |/;
+  const regex = /\w\. | - | \* /;
   const pieces = title.split(regex);
   if (pieces[0].trim() === '') {
     return pieces.slice(1).join();
@@ -109,6 +109,8 @@ Please write the list of sections, in a numbered bullet point list, of the artic
     .map((x) => {
       // Remove the numbered bullet points
       x = x.replace(/^\d+\.\s+/, '');
+      // Remove decimal bullet points
+      x = x.replace(/^\d+\.\d+\s+/, '');
       // Remove the trailing period
       if (x.endsWith('.')) x = x.slice(0, x.length - 1);
       return x;
@@ -180,6 +182,7 @@ export async function generateContent(title) {
   console.log('🔥 generated summary');
   const sections = await generateSections(title, oneSentence);
   console.log('🔥 generated sections');
+  console.log(sections);
 
   const data = {
     title,

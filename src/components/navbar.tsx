@@ -20,7 +20,7 @@ export default function Navbar() {
           </div>
         </div>
       </Link>
-      {isTabletOrMobile ? <></> : <Search />}
+      <Search />
     </div>
   );
 }

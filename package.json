@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "6.9.5",
+    "concurrent-promise-queue": "1.0.2",
     "dotenv": "16.0.3",
     "image-downloader": "4.3.0",
     "mongodb": "5.1.0",

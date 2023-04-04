@@ -3,8 +3,14 @@
   flex-direction: column;
   padding: 2rem;
   min-height: 100vh;
-  font-size: 1.2rem;
-  line-height: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6rem;
+}
+
+@media only screen and (min-width: 768px) {
+  .topBanner {
+    align-items: center;
+  }
 }
 
 .topBanner {
@@ -15,16 +21,19 @@
   margin-top: 4px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: 1rem;
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  line-height: 2rem;
   font-weight: 500;
   padding-bottom: 0.4rem;
   margin-bottom: 0.4rem;
-  align-items: center;
+}
+
+.subtitle {
+  margin-bottom: 1rem;
 }
 
 .articlesTitle {
@@ -36,5 +45,17 @@
   color: #3366cc;
 }
 .link:hover {
+  text-decoration: underline;
+}
+
+.randomButton {
+  background: none;
+  border: none;
+  color: #3366cc;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1.6rem;
+}
+.randomButton:hover {
   text-decoration: underline;
 }
