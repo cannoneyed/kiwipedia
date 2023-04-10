@@ -22,9 +22,19 @@
   font-weight: 500;
 }
 
+.search {
+  width: 400px;
+}
+
 @media only screen and (max-width: 768px) {
+  .navbar {
+    display: flex;
+    flex-direction: column;
+  }
+
   .search {
-    display: none;
+    width: 100%;
+    margin-top: 1rem;
   }
 }
 

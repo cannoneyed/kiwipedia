@@ -104,21 +104,10 @@ async function generatePageImages(page) {
   });
   const allPromises = [];
 
-  // Generate the summary image
-  const promise = queue.addPromise(async () => {
-    try {
-      console.log('🌵 generating summary image for', page.title);
-      await generateSummaryImage(page);
-    } catch (e) {
-      console.error('ERROR', e);
-    }
-  });
-  allPromises.push(promise);
-
-  // Generate for 50% of sections
+  // Generate for 33% of sections
   for (let i = 0; i < page.sections.length; i++) {
     const section = page.sections[i];
-    if (Math.random() < 0.5) continue;
+    if (Math.random() > 0.33) continue;
 
     const promise = queue.addPromise(async () => {
       try {
@@ -140,6 +129,11 @@ async function generatePageImages(page) {
 }
 
 async function generateImages() {
+  const queue = new ConcurrentPromiseQueue({
+    maxNumberOfConcurrentPromises: 8,
+  });
+  const allPromises = [];
+
   for (const page of pages) {
     // Only generate images for those articles that don't have multiple images
     let nImages = 0;
@@ -154,8 +148,17 @@ async function generateImages() {
       continue;
     }
 
-    await generatePageImages(page);
+    const promise = queue.addPromise(async () => {
+      try {
+        await generatePageImages(page);
+      } catch (e) {
+        console.error('ERROR', e);
+      }
+    });
+    allPromises.push(promise);
   }
+
+  await Promise.all(allPromises);
 }
 
 await generateImages();

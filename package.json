@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "6.9.5",
+    "algoliasearch": "4.17.0",
     "concurrent-promise-queue": "1.0.2",
     "dotenv": "16.0.3",
     "image-downloader": "4.3.0",
@@ -21,6 +22,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-responsive": "9.0.2",
+    "react-search-box": "3.0.0",
+    "react-select": "5.7.2",
     "replicate": "0.6.1",
     "sharp": "0.32.0",
     "shuffle-array": "1.0.1",
