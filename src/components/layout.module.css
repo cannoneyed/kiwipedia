@@ -62,3 +62,24 @@
   font-size: 1.2rem;
   line-height: 1.5;
 }
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+  padding: 2rem;
+  font-size: 1.1rem;
+  line-height: 2;
+  border-top: solid 1px lightgray;
+}
+
+.footerTitle {
+  font-weight: 500;
+}
+
+.link {
+  color: #3366cc;
+}
+.link:hover {
+  text-decoration: underline;
+}
