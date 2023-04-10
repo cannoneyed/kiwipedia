@@ -1,12 +1,21 @@
 import styles from './Wiki.module.css';
+import Infobox from './infobox';
 
 export interface Section {
   title: string;
   text: string;
+  showImage?: (image: string) => void;
+}
+
+export interface Image {
+  url: string;
+  prompt: string;
+  caption: string;
 }
 
 export interface Props extends Section {
   subsections?: Section[];
+  image?: Image;
 }
 
 function filterOutSectionTitle(text: string, title: string) {
@@ -37,6 +46,9 @@ export default function Section(props: Props) {
     <>
       <div className={styles.sectionTitle}>{props.title}</div>
       <div className={styles.sectionText}>
+        {props.image ? (
+          <Infobox showImage={props.showImage} image={props.image} />
+        ) : null}
         {paragraphs.map((paragraph, index) => {
           return (
             <p className={styles.paragraph} key={index}>

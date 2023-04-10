@@ -1,7 +1,7 @@
 import { system } from './system.mjs';
 import {
   generateStableDiffusionPrompt,
-  generateCaption,
+  generateCaptionForPrompt,
 } from './generate_image.mjs';
 
 await system.initialize();
@@ -12,7 +12,10 @@ const pages = await collection.find({}).toArray();
 for (const page of pages.slice(1)) {
   console.log('🔥 generating image for', page.title);
   const stableDiffusionPrompt = await generateStableDiffusionPrompt(page.title);
-  const caption = await generateCaption(page.title, stableDiffusionPrompt);
+  const caption = await generateCaptionForPrompt(
+    page.title,
+    stableDiffusionPrompt,
+  );
   try {
     const genUrl = await system.generateImage(stableDiffusionPrompt);
     const pieces = genUrl.split('/');
