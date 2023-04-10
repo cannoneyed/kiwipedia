@@ -54,9 +54,3 @@ Please write a very short caption for the image in the article for "${title}" in
   const text = await system.getCompletion(promptText);
   return text;
 }
-
-export async function generateImage(title) {
-  const stableDiffusionPrompt = await generateStableDiffusionPrompt(title);
-  const imageUrl = await system.generateImage(stableDiffusionPrompt);
-  return imageUrl;
-}

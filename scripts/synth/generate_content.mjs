@@ -3,7 +3,7 @@ import { getFinalUrlPiece } from '../wikipedia/utils.mjs';
 import { system } from './system.mjs';
 import {
   generateStableDiffusionPrompt,
-  generateCaption,
+  generateCaptionForSection,
 } from './generate_image.mjs';
 
 async function generateOneSentence(title, summary) {
@@ -147,10 +147,17 @@ Please write the text for the section "${sectionTitle}" of the article for "${ti
   return removeTitle(sectionTitle, text);
 }
 
-async function generateImage(title) {
+async function generateImage(title, sectionTitle, sectionText) {
   console.log('🔥 generating image for', title);
-  const stableDiffusionPrompt = await generateStableDiffusionPrompt(title);
-  const caption = await generateCaption(title, stableDiffusionPrompt);
+  const caption = await generateCaptionForSection(
+    title,
+    sectionTitle,
+    sectionText,
+  );
+  const stableDiffusionPrompt = await generateStableDiffusionPrompt(
+    title,
+    caption,
+  );
   try {
     const genUrl = await system.generateImage(stableDiffusionPrompt);
     const pieces = genUrl.split('/');
@@ -224,7 +231,7 @@ export async function generateContent(title) {
   }
 
   // Add image
-  data.mainImage = await generateImage(title);
+  data.mainImage = await generateImage(title, 'summary', data.summary);
 
   await collection.replaceOne({ title }, data, { upsert: true });
 
